@@ -13,7 +13,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 SECRET_KEY = 'django-insecure-your-key-here'
 DEBUG = True
-ALLOWED_HOSTS = []
+
+# ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.8.194'] # Remove the "#" to enable
+# IMPORTANT: FOR LOCAL TESTING ONLY, REMOVE FOR PRODUCTION
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'daphne', 

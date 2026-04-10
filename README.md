@@ -89,7 +89,7 @@ SkillSwap is a karma-based service marketplace where users can trade skills, pos
 7. **Run the development server**
 
     ```bash
-    python manage.py runserver
+    python manage.py runserver 0.0.0.0:8000
     ```
 
 8. **Open the app**
