@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center" style="min-height: 80vh; align-items: center;">
+    <div class="col-md-6 col-lg-5">
+        
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="letter-spacing: -1px; color: #1e293b;">Post a Bounty</h2>
+            <p class="text-muted" style="font-size: 0.875rem;">Invest Karma to get the help you need.</p>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="ss-form-container">
+                        {{ form.as_p }}
+                    </div>
+
+                    <div class="p-3 mb-4 rounded" style="background: #fffbeb; border: 1px solid #fde68a;">
+                        <div class="d-flex gap-2">
+                            <span style="color: #d97706;">&#9432;</span>
+                            <small style="color: #92400e; line-height: 1.4;">
+                                The Karma reward will be deducted from your balance immediately to fund the escrow.
+                            </small>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-dark w-100 py-2 fw-bold" style="border-radius: 10px; transition: transform 0.1s;" type="submit">
+                        Post &amp; Fund Bounty
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'service_list' %}" class="text-muted text-decoration-none small fw-bold" style="letter-spacing: 0.2px;">
+                &larr; Back to Trading Floor
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .ss-form-container p {
+        margin-bottom: 1.25rem;
+    }
+    .ss-form-container label {
+        display: block;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 6px;
+    }
+    .ss-form-container input, 
+    .ss-form-container textarea, 
+    .ss-form-container select {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    .ss-form-container input:focus, 
+    .ss-form-container textarea:focus {
+        outline: none;
+        border-color: #cbd5e1;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(30, 41, 59, 0.05);
+    }
+    /* Fixed height for description textarea */
+    .ss-form-container textarea {
+        min-height: 120px;
+    }
+    .btn-dark:active {
+        transform: scale(0.98);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center" style="min-height: 80vh; align-items: center;">
+    <div class="col-md-5 col-lg-4">
+        
+        <div class="text-center mb-4">
+            <div style="font-size: 2rem; font-weight: 800; letter-spacing: -1px; color: #f0522a;">SkillSwap</div>
+            <p class="text-muted" style="font-size: 0.875rem;">Post a bounty. Get things done.</p>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1" style="letter-spacing: -0.3px;">Fund a New Bounty</h5>
+                <p class="text-muted mb-4" style="font-size: 0.85rem;">Karma will be held in escrow.</p>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    {{ form.as_p }}
+
+                    <div class="p-3 mb-4 rounded" style="background: #fffbeb; border: 1px solid #fde68a;">
+                        <small style="color: #b45309; font-size: 0.75rem; line-height: 1.4; display: block;">
+                            <strong>Note:</strong> Reward is deducted immediately to fund the task.
+                        </small>
+                    </div>
+
+                    <button class="btn btn-dark w-100 py-2 fw-bold" style="border-radius: 10px;" type="submit">
+                        Post &amp; Fund Bounty
+                    </button>
+                </form>
+            </div>
+            
+            <div class="card-footer text-center bg-white border-0 pb-4 pt-0">
+                <a href="{% url 'service_list' %}" class="text-muted fw-bold text-decoration-none" style="font-size: 0.75rem;">
+                    &larr; Back to Trading Floor
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row align-items-center" style="min-height: 75vh;">
+    <div class="col-lg-6 mb-5 mb-lg-0">
+        <h1 class="display-3 fw-extrabold mb-3" style="letter-spacing: -2px; line-height: 1; color: #1e293b;">
+            Trade skills, not <span style="color: #f0522a;">money.</span>
+        </h1>
+        <p class="lead text-muted mb-4" style="font-size: 1.25rem; max-width: 500px;">
+            The community-driven bounty board where your expertise is the currency. Post tasks, earn Karma, and swap skills with creators worldwide.
+        </p>
+        <div class="d-flex gap-3">
+            <a href="{% url 'register' %}" class="btn btn-dark btn-lg px-4 fw-bold" style="border-radius: 12px; background: #1e293b;">Get Started Free</a>
+            <a href="{% url 'service_list' %}" class="btn btn-outline-dark btn-lg px-4 fw-bold" style="border-radius: 12px;">Browse Bounties</a>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 d-none d-lg-block">
+        <div class="p-5 rounded-4 shadow-lg" style="background: white; transform: rotate(2deg); border: 1px solid #e8e5e0;">
+            <div class="d-flex justify-content-between mb-3">
+                <span class="badge" style="background: #fff0ec; color: #f0522a;">NEW BOUNTY</span>
+                <span class="fw-bold" style="color: #f59e0b;">★ 500 Karma</span>
+            </div>
+            <h3 class="fw-bold mb-2">Build a React Landing Page</h3>
+            <p class="text-muted small mb-4">I need a clean, responsive landing page for a new coffee brand. Willing to swap for UI design or Python help!</p>
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-secondary" style="width: 32px; height: 32px;"></div>
+                <small class="fw-bold">@alex_dev</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5" style="opacity: 0.1;">
+
+<div class="row text-center g-4 pb-5">
+    <div class="col-md-4">
+        <div class="p-4 rounded-4 h-100" style="background: white; border: 1px solid #f0ede8;">
+            <div class="display-6 mb-3">🎯</div>
+            <h5 class="fw-bold">Post a Bounty</h5>
+            <p class="text-muted small">Need help with a project? Put some Karma on the line and find a skilled partner instantly.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="p-4 rounded-4 h-100" style="background: white; border: 1px solid #f0ede8;">
+            <div class="display-6 mb-3">⚡</div>
+            <h5 class="fw-bold">Real-time Trading</h5>
+            <p class="text-muted small">Our live trading floor ensures you see new opportunities the second they are posted.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="p-4 rounded-4 h-100" style="background: white; border: 1px solid #f0ede8;">
+            <div class="display-6 mb-3">💬</div>
+            <h5 class="fw-bold">Direct Collaboration</h5>
+            <p class="text-muted small">Built-in private chat and file sharing make it easy to manage your tasks from start to finish.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-extrabold { font-weight: 800; }
+</style>
+{% endblock %}

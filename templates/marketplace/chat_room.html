@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+                <div>
+                    <h5 class="fw-bold mb-0" style="letter-spacing: -0.3px;">{{ transaction.service.title }}</h5>
+                    <small class="text-muted" style="font-size: 0.8rem;">
+                        with
+                        {% if user == transaction.service.client %}
+                            @{{ transaction.fulfiller.username }}
+                        {% else %}
+                            @{{ transaction.service.client.username }}
+                        {% endif %}
+                    </small>
+                </div>
+                <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px; font-size: 0.8rem;">
+                    &larr; Back
+                </a>
+            </div>
+
+            <!-- Chat window -->
+            <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
+                <div id="chat-log" class="card-body overflow-auto p-4"
+                    style="height: 480px; background: #f5f4f0; display: flex; flex-direction: column; gap: 12px;">
+                    {% for msg in chat_messages %}
+                        <div class="d-flex {% if msg.sender == user %}justify-content-end{% else %}justify-content-start{% endif %}">
+                            <div class="px-3 py-2"
+                                style="max-width: 75%;
+                                        {% if msg.sender == user %}
+                                            background: #1e293b; color: #f1f5f9; border-radius: 14px 14px 2px 14px;
+                                        {% else %}
+                                            background: #ffffff; color: #1e293b; border-radius: 14px 14px 14px 2px; border: 1px solid #e8e5e0;
+                                        {% endif %}">
+                                <div style="font-size: 0.7rem; font-weight: 600; opacity: 0.6; margin-bottom: 3px;">{{ msg.sender.username }}</div>
+
+                                {% if msg.file %}
+                                    {% if ".png" in msg.file.name|lower or ".jpg" in msg.file.name|lower or ".jpeg" in msg.file.name|lower or ".gif" in msg.file.name|lower %}
+                                        <img src="{{ msg.file.url }}" class="img-fluid rounded mb-2" style="max-height: 220px; display: block;">
+                                    {% else %}
+                                        <div class="p-2 rounded mb-2" style="background: rgba(255,255,255,0.15); font-size: 0.8rem;">
+                                            &#128196; {{ msg.file.name }}<br>
+                                            <a href="{{ msg.file.url }}" target="_blank" class="btn btn-sm btn-light mt-1" style="font-size:0.75rem;">Download</a>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+
+                                <div style="font-size: 0.9rem; line-height: 1.5;">{{ msg.content }}</div>
+                                <div class="text-end mt-1" style="font-size: 0.65rem; opacity: 0.5;">{{ msg.timestamp|date:"H:i" }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Input bar -->
+                <div class="card-footer bg-white border-0 p-3" style="border-top: 1px solid #f0ede8;">
+                    <div class="input-group" style="gap: 8px;">
+                        <input type="file" id="file-input" style="display: none;">
+                        <button class="btn btn-light border" onclick="document.getElementById('file-input').click()"
+                                style="border-radius: 10px; font-size: 0.875rem; color: #6b7280;">
+                            &#128206;
+                        </button>
+                        <input id="chat-message-input" type="text" class="form-control"
+                                style="border-radius: 10px; font-size: 0.875rem; background: #f5f4f0; border: 1px solid #e8e5e0;"
+                                placeholder="Type a message..." autocomplete="off">
+                        <button id="chat-message-submit" class="btn fw-bold px-4"
+                                style="background: #1e293b; color: #fff; border-radius: 10px; font-size: 0.875rem; border: none;">
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const transactionId = "{{ transaction.id }}";
+    const userName = "{{ user.username }}";
+    const chatLog = document.querySelector('#chat-log');
+
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + transactionId + '/');
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const isMe = data.sender === userName;
+
+        let fileHtml = '';
+        if (data.file_url) {
+            if (data.is_image) {
+                fileHtml = `<img src="${data.file_url}" class="img-fluid rounded mb-2" style="max-height: 220px; display: block;">`;
+            } else {
+                fileHtml = `
+                    <div class="p-2 rounded mb-2" style="background:rgba(255,255,255,0.15); font-size:0.8rem;">
+                        &#128196; Attached File<br>
+                        <a href="${data.file_url}" target="_blank" class="btn btn-sm btn-light mt-1" style="font-size:0.75rem;">Download</a>
+                    </div>`;
+            }
+        }
+
+        const bubble = `
+            <div class="d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'}">
+                <div class="px-3 py-2" style="max-width:75%;${isMe
+                    ? 'background:#1e293b;color:#f1f5f9;border-radius:14px 14px 2px 14px;'
+                    : 'background:#fff;color:#1e293b;border-radius:14px 14px 14px 2px;border:1px solid #e8e5e0;'}">
+                    <div style="font-size:0.7rem;font-weight:600;opacity:0.6;margin-bottom:3px;">${data.sender}</div>
+                    ${fileHtml}
+                    <div style="font-size:0.9rem;line-height:1.5;">${data.message}</div>
+                </div>
+            </div>`;
+
+        chatLog.insertAdjacentHTML('beforeend', bubble);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
+
+    document.querySelector('#file-input').addEventListener('change', function() {
+        if (!this.files.length) return;
+        const formData = new FormData();
+        formData.append('chat_file', this.files[0]);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        fetch(`/marketplace/transaction/${transactionId}/upload/`, { method: 'POST', body: formData })
+            .then(r => { if (r.ok) console.log("File uploaded"); });
+        this.value = '';
+    });
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.keyCode === 13) document.querySelector('#chat-message-submit').click();
+    };
+    document.querySelector('#chat-message-submit').onclick = function() {
+        const input = document.querySelector('#chat-message-input');
+        const message = input.value;
+        if (message.trim() !== '') {
+            chatSocket.send(JSON.stringify({ 'message': message }));
+            input.value = '';
+        }
+    };
+</script>
+{% endblock %}

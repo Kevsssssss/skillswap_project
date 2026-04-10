@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mt-4 g-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-4" style="border-radius: 16px; position: sticky; top: 80px;">
+            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                style="width:64px; height:64px; background:#f0ede8; font-size:1.75rem;">&#128100;</div>
+            <h5 class="fw-bold mb-0" style="letter-spacing: -0.3px;">{{ user.username }}</h5>
+            <div class="mt-2 mb-1">
+                <span style="color: #f59e0b; font-size: 1rem;">&#9733;</span>
+                <span class="fw-bold">{{ avg_rating|default:"5.0" }}</span>
+                <small class="text-muted">/ 5.0</small>
+            </div>
+            <div class="mt-2 px-3 py-2 rounded" style="background: #fffbeb; display: inline-block; margin: 0 auto;">
+                <span class="fw-bold" style="color: #b45309; font-size: 1.1rem;">★ {{ user.profile.karma_balance }}</span>
+                <small class="text-muted ms-1">Karma</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <ul class="nav nav-tabs mb-4 border-0 gap-1" id="dashTabs" style="border-bottom: 1.5px solid #e8e5e0 !important;">
+            <li class="nav-item">
+                <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#bounties" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">My Bounties</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#claims" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">Tasks I'm Doing</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#completed" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">Completed</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#history" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">History</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#alerts" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">
+                    Alerts
+                    {% if notifications %}
+                        <span class="badge rounded-pill bg-danger ms-1" style="font-size: 0.6rem;">{{ notifications|length }}</span>
+                    {% endif %}
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="bounties">
+                <p class="text-muted fw-bold mb-3" style="font-size: 0.75rem; text-transform: uppercase;">Open Listings</p>
+                {% for service in unclaimed_listings %}
+                <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px; border-left: 4px solid #f59e0b !important;">
+                    <div class="card-body d-flex justify-content-between align-items-center py-3 px-4">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ service.title }}</h6>
+                            <small class="text-muted">★ {{ service.karma_reward }} Karma reward</small>
+                        </div>
+                        <form action="{% url 'cancel_bounty' service.pk %}" method="POST">
+                            {% csrf_token %}<button class="btn btn-sm btn-outline-danger" style="border-radius: 8px;">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}<p class="text-muted small">No open listings.</p>{% endfor %}
+
+                <hr class="my-4">
+
+                <p class="text-muted fw-bold mb-3" style="font-size: 0.75rem; text-transform: uppercase;">In Progress</p>
+                {% for tx in bounties_in_progress %}
+                <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px; border-left: 4px solid #6366f1 !important;">
+                    <div class="card-body d-flex justify-content-between align-items-center py-3 px-4">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ tx.service.title }}</h6>
+                            <small class="text-muted">Worker: @{{ tx.fulfiller.username }}</small>
+                        </div>
+                        {% if tx.status == 'LOCKED' and not tx.client_approved %}
+                        <form action="{% url 'mark_transaction_complete' tx.pk %}" method="POST">
+                            {% csrf_token %}<button class="btn btn-sm btn-primary px-3 fw-bold" style="border-radius:8px;">Approve & Pay</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}<p class="text-muted small">No active workers.</p>{% endfor %}
+            </div>
+
+            <div class="tab-pane fade" id="claims">
+                {% for tx in tasks_im_doing %}
+                <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px; border-left: 4px solid #10b981 !important;">
+                    <div class="card-body d-flex justify-content-between align-items-center py-3 px-4">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ tx.service.title }}</h6>
+                            <small class="text-muted">Client: @{{ tx.service.client.username }}</small>
+                        </div>
+                        {% if tx.status == 'LOCKED' and not tx.fulfiller_approved %}
+                        <form action="{% url 'mark_transaction_complete' tx.pk %}" method="POST">
+                            {% csrf_token %}<button class="btn btn-sm btn-success px-3 fw-bold" style="border-radius:8px;">Mark as Done</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}<p class="text-muted">No claimed tasks.</p>{% endfor %}
+            </div>
+
+            <div class="tab-pane fade" id="completed">
+                {% for tx in completed_tasks %}
+                <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px; background: #f9f8f6;">
+                    <div class="card-body d-flex justify-content-between align-items-center py-3 px-4">
+                        <div>
+                            <h6 class="mb-0 fw-bold text-dark">{{ tx.service.title }}</h6>
+                            <small class="text-muted">{% if tx.fulfiller == user %}Client: @{{ tx.service.client.username }}{% else %}Worker: @{{ tx.fulfiller.username }}{% endif %}</small>
+                        </div>
+                        {% if tx.user_has_reviewed %}
+                            <span class="badge bg-success px-3 py-2" style="border-radius: 8px;">Reviewed ✓</span>
+                        {% else %}
+                            <a href="{% url 'submit_review' tx.pk %}" class="btn btn-sm btn-dark px-3 fw-bold" style="border-radius: 8px;">Leave Review</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}<p class="text-muted text-center py-4">No completed tasks yet.</p>{% endfor %}
+            </div>
+
+            <div class="tab-pane fade" id="history">
+                <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                    <table class="table table-hover align-middle mb-0">
+                        <tbody>
+                            {% for entry in karma_history %}
+                            <tr>
+                                <td class="text-muted ps-4" style="width: 80px;">{{ entry.created_at|date:"M d" }}</td>
+                                <td>
+                                    <div class="fw-bold">{{ entry.get_transaction_type_display }}</div>
+                                    <div class="text-muted small">{{ entry.description }}</div>
+                                </td>
+                                <td class="text-end pe-4 fw-bold {% if entry.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    {% if entry.amount > 0 %}+{% endif %}{{ entry.amount }}
+                                </td>
+                            </tr>
+                            {% empty %}<tr><td colspan="3" class="text-center py-5 text-muted">No history found.</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="alerts">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <p class="text-muted fw-bold mb-0" style="font-size: 0.75rem;">ALERTS</p>
+                    {% if notifications %}
+                        <form action="{% url 'mark_notifications_read' %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-link text-muted p-0 text-decoration-none">
+                                Clear All
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+                {% for notify in notifications %}
+                <div class="card mb-2 border-0 shadow-sm" style="border-radius: 12px; background: #eff6ff; border: 1px solid #bfdbfe !important;">
+                    <div class="card-body py-3 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: #1e3a8a;">{{ notify.message }}</h6>
+                            <small class="text-muted">{{ notify.created_at|timesince }} ago</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            {% if notify.target_url %}
+                                <a href="{{ notify.target_url }}" class="btn btn-sm btn-primary px-3 fw-bold" style="border-radius: 8px;">View</a>
+                            {% endif %}
+                            <form action="{% url 'clear_single_alert' notify.pk %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-secondary px-2" style="border-radius: 8px;">✕</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}<div class="text-center py-5"><p class="text-muted">No new alerts.</p></div>{% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Check if there is a hash in the URL (like #alerts)
+        let hash = window.location.hash;
+        if (hash) {
+            // Find the tab button that targets this hash
+            let triggerEl = document.querySelector('button[data-bs-target="' + hash + '"]');
+            if (triggerEl) {
+                // Tell Bootstrap to show this tab
+                let tab = new bootstrap.Tab(triggerEl);
+                tab.show();
+            }
+        }
+        
+        // Optional Bonus: Update the URL quietly when the user clicks different tabs
+        // so if they manually refresh, they stay on the tab they clicked.
+        let tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabButtons.forEach(button => {
+            button.addEventListener('shown.bs.tab', function (e) {
+                window.history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
+            });
+        });
+    });
+</script>
+{% endblock %}

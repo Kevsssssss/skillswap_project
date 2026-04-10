@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+    <div>
+        <h1 class="fw-bold mb-0" style="letter-spacing: -0.5px;">Trading Floor</h1>
+        <p class="text-muted mb-0" style="font-size: 0.875rem;">Live bounties open for claiming</p>
+    </div>
+    <a href="{% url 'service_create' %}" class="btn btn-dark fw-bold px-4" style="border-radius: 10px;">+ Post a Bounty</a>
+</div>
+
+<div id="bounty-list" class="row">
+    {% for service in services %}
+        <div class="col-md-6 mb-4 bounty-card-container">
+            <div class="card h-100 border-0 shadow-sm" style="border-radius: 14px; border-top: 3px solid #6366f1 !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title fw-bold text-dark mb-0" style="font-size: 1rem;">{{ service.title }}</h5>
+                        <span class="badge rounded-pill ms-2 flex-shrink-0"
+                            style="background: #fffbeb; color: #b45309; font-size: 0.75rem; font-weight: 600; border: 1px solid #fcd34d; white-space: nowrap;">
+                            &#9733; {{ service.karma_reward }}
+                        </span>
+                    </div>
+                    <p class="card-text text-muted mb-3" style="font-size: 0.85rem; line-height: 1.6;">
+                        {{ service.description|truncatewords:20 }}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid #f0ede8;">
+                        <small class="text-secondary" style="font-size: 0.78rem;">@{{ service.client.username }}</small>
+                        <a href="{% url 'service_detail' service.pk %}" class="btn btn-sm fw-bold px-3"
+                        style="border-radius: 8px; font-size: 0.8rem; border: 1.5px solid #6366f1; color: #6366f1; background: transparent;">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div id="no-bounties-msg" class="col-12 text-center py-5">
+            <div style="font-size: 2.5rem; opacity: 0.3; margin-bottom: 1rem;">&#9650;</div>
+            <h4 class="text-muted fw-bold mb-1">The floor is quiet...</h4>
+            <p class="text-secondary" style="font-size: 0.875rem;">Be the first to post a bounty!</p>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const socketUrl = protocol + window.location.host + '/ws/trading-floor/';
+    const tradingSocket = new WebSocket(socketUrl);
+
+    tradingSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const bounty = data.message;
+        const bountyList = document.getElementById('bounty-list');
+        const emptyMsg = document.getElementById('no-bounties-msg');
+        if (emptyMsg) emptyMsg.remove();
+
+        const newCard = `
+            <div class="col-md-6 mb-4 bounty-card-container animate-fade-in">
+                <div class="card h-100 border-0 shadow-sm" style="border-radius: 14px; border-top: 3px solid #ef4444 !important;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold text-dark mb-0" style="font-size: 1rem;">
+                                <span class="badge me-2" style="background:#ef4444; font-size:0.65rem; border-radius:6px; padding: 3px 7px;">NEW</span>${bounty.title}
+                            </h5>
+                            <span class="badge rounded-pill ms-2 flex-shrink-0"
+                                style="background:#fffbeb; color:#b45309; font-size:0.75rem; font-weight:600; border:1px solid #fcd34d; white-space:nowrap;">
+                                &#9733; ${bounty.karma_cost}
+                            </span>
+                        </div>
+                        <p class="card-text text-muted mb-3" style="font-size: 0.85rem; line-height: 1.6;">${bounty.description}</p>
+                        <div class="d-flex justify-content-between align-items-center pt-2" style="border-top:1px solid #f0ede8;">
+                            <small class="text-secondary" style="font-size:0.78rem;">@${bounty.provider}</small>
+                            <a href="/marketplace/${bounty.id}/" class="btn btn-sm fw-bold px-3"
+                                style="border-radius:8px; font-size:0.8rem; border:1.5px solid #6366f1; color:#6366f1; background:transparent;">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        bountyList.insertAdjacentHTML('afterbegin', newCard);
+    };
+
+    tradingSocket.onclose = function(e) {
+        console.error('Trading Floor socket closed unexpectedly');
+    };
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+</style>
+{% endblock %}

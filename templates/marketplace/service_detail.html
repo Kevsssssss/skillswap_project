@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-7">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+            <div class="card-body p-4 p-md-5">
+
+                <div class="mb-4">
+                    <h2 class="fw-bold mb-1" style="letter-spacing: -0.5px;">{{ service.title }}</h2>
+                    <small class="text-muted">Posted by <strong>@{{ service.client.username }}</strong></small>
+                </div>
+
+                <div class="rounded p-4 mb-4" style="background: #f5f4f0; border-left: 4px solid #e2e0db;">
+                    <p class="fw-bold text-muted mb-2" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Description</p>
+                    <p class="mb-0" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.7;">{{ service.description }}</p>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center p-4 rounded"
+                    style="background: #fffbeb; border: 1.5px solid #fcd34d;">
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Reward</p>
+                        <span class="fw-bold" style="font-size: 1.5rem; color: #d97706;">&#9733; {{ service.karma_reward }} Karma</span>
+                    </div>
+                    {% if request.user == service.client %}
+                        <button class="btn btn-secondary disabled" style="border-radius: 10px;">Your bounty</button>
+                    {% else %}
+                        <form action="{% url 'claim_bounty' service.pk %}" method="POST" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn fw-bold px-4 py-2"
+                                    style="background: #f59e0b; color: #fff; border-radius: 10px; border: none;">
+                                Claim This Bounty
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
