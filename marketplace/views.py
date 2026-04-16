@@ -89,7 +89,8 @@ def profile(request):
     
     # THE STABLE ROLLBACK: Just fetch raw unread notifications
     notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')
-    avg_rating = Review.objects.filter(reviewee=request.user).aggregate(Avg('rating'))['rating__avg']
+    avg_rating_raw = Review.objects.filter(reviewee=request.user).aggregate(Avg('rating'))['rating__avg']
+    avg_rating = round(avg_rating_raw, 1) if avg_rating_raw is not None else None
 
     return render(request, 'accounts/profile.html', {
         'unclaimed_listings': unclaimed_listings,

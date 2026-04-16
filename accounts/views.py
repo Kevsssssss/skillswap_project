@@ -55,8 +55,8 @@ def profile(request):
     # 6. Full Notification History
     notifications = request.user.notifications.all().order_by('-created_at')
 
-    avg_rating = request.user.reviews_received.aggregate(Avg('rating'))['rating__avg'] or 0
-    avg_rating = round(avg_rating, 1)
+    avg_rating_raw = request.user.reviews_received.aggregate(Avg('rating'))['rating__avg']
+    avg_rating = round(avg_rating_raw, 1) if avg_rating_raw is not None else None
 
     context = {
         'bounties_in_progress': bounties_in_progress,

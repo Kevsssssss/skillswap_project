@@ -8,9 +8,13 @@
                 style="width:64px; height:64px; background:#f0ede8; font-size:1.75rem;">&#128100;</div>
             <h5 class="fw-bold mb-0" style="letter-spacing: -0.3px;">{{ user.username }}</h5>
             <div class="mt-2 mb-1">
+                {% if avg_rating %}
                 <span style="color: #f59e0b; font-size: 1rem;">&#9733;</span>
-                <span class="fw-bold">{{ avg_rating|default:"5.0" }}</span>
+                <span class="fw-bold">{{ avg_rating }}</span>
                 <small class="text-muted">/ 5.0</small>
+                {% else %}
+                <span class="text-muted small">Unrated</span>
+                {% endif %}
             </div>
             <div class="mt-2 px-3 py-2 rounded" style="background: #fffbeb; display: inline-block; margin: 0 auto;">
                 <span class="fw-bold" style="color: #b45309; font-size: 1.1rem;">★ {{ user.profile.karma_balance }}</span>
