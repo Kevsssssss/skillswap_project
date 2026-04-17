@@ -22,13 +22,27 @@
                     
                     <fieldset class="form-group mb-4">
                         <legend class="border-bottom mb-3 pb-2" style="font-size: 1.1rem; font-weight: 600;">Profile Details</legend>
-                        <div class="mb-4 text-center">
-                            <label class="form-label d-block fw-bold small text-muted">Profile Picture</label>
-                            <img src="{{ user.profile.image.url }}" class="rounded-circle border mb-3" style="width: 100px; height: 100px; object-fit: cover;">
-                            <div class="mx-auto" style="max-width: 300px;">
-                                {{ p_form.image }}
+                        
+                        <!-- Modern PFP Upload Section -->
+                        <div class="mb-5 text-center">
+                            <div class="position-relative d-inline-block">
+                                <img id="pfp-preview" src="{{ user.profile.image.url }}" 
+                                     class="rounded-circle border shadow-sm mb-3" 
+                                     style="width: 120px; height: 120px; object-fit: cover; transition: all 0.3s ease;">
+                                <div class="pfp-overlay rounded-circle"></div>
+                            </div>
+                            
+                            <div class="mx-auto" style="max-width: 200px;">
+                                <label for="id_image" class="btn btn-sm btn-outline-primary fw-bold px-3 py-2" style="border-radius: 8px; cursor: pointer;">
+                                    <span style="font-size: 0.8rem;">&#128247; Change Photo</span>
+                                </label>
+                                <div style="display: none;">
+                                    {{ p_form.image }}
+                                </div>
+                                <p class="text-muted mt-2 mb-0" style="font-size: 0.7rem;">JPG, PNG or GIF. Max 5MB.</p>
                             </div>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">Specialties</label>
                             {{ p_form.specialties }}
@@ -72,4 +86,13 @@
         box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
     }
 </style>
+
+<script>
+    document.getElementById('id_image').onchange = function (evt) {
+        const [file] = this.files;
+        if (file) {
+            document.getElementById('pfp-preview').src = URL.createObjectURL(file);
+        }
+    }
+</script>
 {% endblock %}
