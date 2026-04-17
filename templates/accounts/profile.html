@@ -24,17 +24,17 @@
             <div class="mt-2 mb-1">
                 {% if avg_rating %}
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                    <span style="color: #f59e0b; font-size: 1.1rem;">
+                    <span style="color: var(--ss-karma); font-size: 1.1rem;">
                         {% for i in "12345" %}
                             {% if avg_rating >= forloop.counter %}
                                 ★
                             {% elif avg_rating > forloop.counter0 %}
                                 <span style="position: relative; display: inline-block;">
-                                    <span style="color: #e2e8f0;">★</span>
-                                    <span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #f59e0b;">★</span>
+                                    <span style="color: var(--border-color);">★</span>
+                                    <span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: var(--ss-karma);">★</span>
                                 </span>
                             {% else %}
-                                <span style="color: #e2e8f0;">★</span>
+                                <span style="color: var(--border-color);">★</span>
                             {% endif %}
                         {% endfor %}
                     </span>
@@ -45,42 +45,70 @@
                 <span class="text-muted small">No reviews yet</span>
                 {% endif %}
             </div>
-            <div class="mt-2 px-3 py-2 rounded" style="background: #fffbeb; display: inline-block; margin: 0 auto;">
-                <span class="fw-bold" style="color: #b45309; font-size: 1.1rem;">★ {{ user.profile.karma_balance }}</span>
+            <div class="mt-2 px-3 py-2 rounded" style="background: var(--ss-karma-bg); display: inline-block; margin: 0 auto; border: 1px solid var(--ss-karma-border);">
+                <span class="fw-bold" style="color: var(--ss-karma); font-size: 1.1rem;">★ {{ user.profile.karma_balance }}</span>
                 <small class="text-muted ms-1">Karma</small>
             </div>
         </div>
     </div>
 
     <div class="col-md-9">
-        <ul class="nav nav-tabs mb-4 border-0 gap-1" id="dashTabs" style="border-bottom: 1.5px solid #e8e5e0 !important;">
-            <li class="nav-item">
-                <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#bounties" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">My Bounties</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#claims" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">Tasks I'm Doing</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#completed" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">Completed</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#history" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">History</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#alerts" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">
-                    Alerts
-                    {% if unread_notifications_count > 0 %}
-                        <span id="tab-notification-badge" class="badge rounded-pill bg-danger ms-1" style="font-size: 0.6rem;">{{ unread_notifications_count }}</span>
-                    {% endif %}
-                </button>
-            </li>
-        </ul>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <ul class="nav nav-tabs border-0 gap-1" id="dashTabs" style="border-bottom: 1.5px solid var(--border-color) !important;">
+                <li class="nav-item">
+                    <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#bounties" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">My Bounties</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#claims" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">Tasks I'm Doing</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#completed" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">Completed</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#history" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">History</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#alerts" style="border: none; border-radius: 8px 8px 0 0; font-size: 0.875rem;">
+                        Alerts
+                        {% if unread_notifications_count > 0 %}
+                            <span id="tab-notification-badge" class="badge rounded-pill bg-danger ms-1" style="font-size: 0.6rem;">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </button>
+                </li>
+            </ul>
 
-        <div class="tab-content">
+            <!-- Simple Bold Dark Mode Toggle with Orange Knob -->
+            <div class="form-check form-switch mb-2 me-2 d-flex align-items-center gap-2">
+                <input class="form-check-input" type="checkbox" id="darkModeToggle" 
+                       style="cursor: pointer; width: 2.5em; height: 1.25em; border: 2px solid #000 !important;">
+                <label class="form-check-label small fw-bold text-muted" for="darkModeToggle" style="user-select: none;">Dark Mode</label>
+            </div>
+        </div>
+
+        <style>
+            #darkModeToggle {
+                transition: all 0.2s ease;
+                /* Custom Orange Knob SVG */
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23f0522a'/%3e%3c/svg%3e") !important;
+            }
+            #darkModeToggle:checked {
+                background-color: transparent !important;
+                border-color: #000 !important;
+                background-position: right center;
+            }
+            [data-theme="dark"] #darkModeToggle {
+                border-color: #fff !important;
+            }
+            [data-theme="dark"] .form-check-label {
+                color: #fff !important;
+            }
+        </style>
+
+        <div class="tab-content mt-3">
             <div class="tab-pane fade show active" id="bounties">
                 <p class="text-muted fw-bold mb-3" style="font-size: 0.75rem; text-transform: uppercase;">Open Listings</p>
                 {% for service in unclaimed_listings %}
-                <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px; border-left: 4px solid #f59e0b !important;">
+                <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px; border-left: 4px solid var(--ss-karma) !important;">
                     <div class="card-body d-flex justify-content-between align-items-center py-3 px-4">
                         <div>
                             <h6 class="mb-0 fw-bold">{{ service.title }}</h6>
@@ -133,7 +161,7 @@
 
             <div class="tab-pane fade" id="completed">
                 {% for tx in completed_tasks %}
-                <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px; background: #f9f8f6;">
+                <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px; background: var(--well-bg);">
                     <div class="card-body d-flex justify-content-between align-items-center py-3 px-4">
                         <div>
                             <h6 class="mb-0 fw-bold text-dark">{{ tx.service.title }}</h6>
@@ -183,10 +211,10 @@
                     {% endif %}
                 </div>
                 {% for notify in notifications %}
-                <div class="card mb-2 border-0 shadow-sm" style="border-radius: 12px; background: #eff6ff; border: 1px solid #bfdbfe !important;">
+                <div class="card mb-2 border-0 shadow-sm" style="border-radius: 12px; background: var(--ss-alert-bg); border: 1px solid var(--ss-alert-border) !important;">
                     <div class="card-body py-3 px-4 d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: #1e3a8a;">{{ notify.message }}</h6>
+                            <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: var(--ss-alert-text);">{{ notify.message }}</h6>
                             <small class="text-muted">{{ notify.created_at|timesince }} ago</small>
                         </div>
                         <div class="d-flex gap-2">
@@ -207,20 +235,35 @@
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Check if there is a hash in the URL (like #alerts)
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('darkModeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // Sync checkbox with current theme
+        if (currentTheme === 'dark') {
+            themeToggle.checked = true;
+        }
+
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Tab Persistence Logic
         let hash = window.location.hash;
         if (hash) {
-            // Find the tab button that targets this hash
             let triggerEl = document.querySelector('button[data-bs-target="' + hash + '"]');
             if (triggerEl) {
-                // Tell Bootstrap to show this tab
                 let tab = new bootstrap.Tab(triggerEl);
                 tab.show();
             }
         }
         
-        // Optional Bonus: Update the URL quietly when the user clicks different tabs
-        // so if they manually refresh, they stay on the tab they clicked.
         let tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
         tabButtons.forEach(button => {
             button.addEventListener('shown.bs.tab', function (e) {
