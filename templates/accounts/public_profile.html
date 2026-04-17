@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mt-4 g-4 justify-content-center">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-4" style="border-radius: 16px; position: sticky; top: 80px;">
+            <div class="mx-auto mb-3" style="width:100px; height:100px;">
+                <img src="{{ profile_user.profile.image.url }}" class="rounded-circle shadow-sm border" 
+                     style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <h4 class="fw-bold mb-1">{{ profile_user.username }}</h4>
+            
+            <div class="mb-3">
+                {% if avg_rating %}
+                <div class="d-flex align-items-center justify-content-center gap-1">
+                    <span style="color: #f59e0b; font-size: 1.2rem;">
+                        {% for i in "12345" %}
+                            {% if avg_rating >= forloop.counter %}★{% else %}<span style="color: #e2e8f0;">★</span>{% endif %}
+                        {% endfor %}
+                    </span>
+                    <span class="fw-bold ms-1">{{ avg_rating }}</span>
+                    <span class="text-muted small">({{ review_count }} reviews)</span>
+                </div>
+                {% else %}
+                <span class="text-muted small">No reviews yet</span>
+                {% endif %}
+            </div>
+
+            <div class="text-start mb-4">
+                <p class="fw-bold text-muted small mb-1" style="text-transform: uppercase;">Specialties</p>
+                <p class="mb-3">{{ profile_user.profile.specialties|default:"No specialties listed." }}</p>
+                
+                <p class="fw-bold text-muted small mb-1" style="text-transform: uppercase;">Bio</p>
+                <p class="mb-0" style="font-size: 0.9rem; line-height: 1.6;">{{ profile_user.profile.bio|default:"No bio provided." }}</p>
+            </div>
+
+            <div class="pt-3 border-top">
+                <span class="fw-bold" style="color: #b45309;">★ {{ profile_user.profile.karma_balance }}</span>
+                <small class="text-muted ms-1">Karma Available</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <h5 class="fw-bold mb-4">Active Bounties from {{ profile_user.username }}</h5>
+        {% for service in active_bounties %}
+        <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px; border-left: 4px solid #6366f1 !important;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="fw-bold mb-0">{{ service.title }}</h6>
+                    <span class="badge rounded-pill" style="background: #fffbeb; color: #b45309; border: 1px solid #fcd34d;">
+                        ★ {{ service.karma_reward }} Karma
+                    </span>
+                </div>
+                <p class="text-muted small mb-3">{{ service.description|truncatewords:30 }}</p>
+                <a href="{% url 'service_detail' service.pk %}" class="btn btn-sm btn-outline-primary fw-bold" style="border-radius: 8px;">View Details</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 bg-white rounded shadow-sm">
+            <p class="text-muted mb-0">No active bounties at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

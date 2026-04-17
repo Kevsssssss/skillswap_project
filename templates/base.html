@@ -36,8 +36,8 @@
                             <a href="{% url 'profile' %}" class="nav-link position-relative">
                                 Profile
                                 <span id="nav-notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                      style="font-size: 0.6rem; {% if not notifications %}display:none;{% endif %}">
-                                    {{ notifications|length }}
+                                      style="font-size: 0.6rem; {% if unread_notifications_count == 0 %}display:none;{% endif %}">
+                                    {{ unread_notifications_count }}
                                 </span>
                             </a>
                         </li>
@@ -84,10 +84,14 @@
                 pingSound.currentTime = 0;
                 pingSound.play().catch(err => {});
 
-                if (notifyBadge) {
-                    let currentTotal = parseInt(notifyBadge.innerText) || 0;
-                    notifyBadge.innerText = currentTotal + 1;
-                    notifyBadge.style.display = 'block';
+                if (notifyBadge && data.unread_count !== undefined) {
+                    notifyBadge.innerText = data.unread_count;
+                    notifyBadge.style.display = data.unread_count > 0 ? 'block' : 'none';
+                }
+                const tabBadge = document.getElementById('tab-notification-badge');
+                if (tabBadge && data.unread_count !== undefined) {
+                    tabBadge.innerText = data.unread_count;
+                    tabBadge.style.display = data.unread_count > 0 ? 'inline-block' : 'none';
                 }
 
                 const toastId = `toast-${Date.now()}`;

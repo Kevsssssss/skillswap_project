@@ -12,9 +12,9 @@
                     <small class="text-muted" style="font-size: 0.8rem;">
                         with
                         {% if user == transaction.service.client %}
-                            @{{ transaction.fulfiller.username }}
+                            <a href="{% url 'public_profile' transaction.fulfiller.username %}" class="fw-bold text-dark text-decoration-none">@{{ transaction.fulfiller.username }}</a>
                         {% else %}
-                            @{{ transaction.service.client.username }}
+                            <a href="{% url 'public_profile' transaction.service.client.username %}" class="fw-bold text-dark text-decoration-none">@{{ transaction.service.client.username }}</a>
                         {% endif %}
                     </small>
                 </div>

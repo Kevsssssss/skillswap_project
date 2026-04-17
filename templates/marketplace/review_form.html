@@ -1,34 +1,113 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+    .star-rating input {
+        display: none;
+    }
+    .star-rating label {
+        font-size: 2.5rem;
+        color: #e2e8f0;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label {
+        color: #f59e0b;
+    }
+    .rating-label-text {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #475569;
+        min-width: 100px;
+    }
+</style>
+
 <div class="row justify-content-center mt-5">
     <div class="col-md-6 col-lg-5">
         <div class="card border-0 shadow-sm" style="border-radius: 16px;">
             <div class="card-body p-4 p-md-5">
-                <div class="mb-4">
+                <div class="mb-4 text-center">
                     <h4 class="fw-bold mb-1" style="letter-spacing: -0.3px;">Leave a review</h4>
                     <p class="text-muted" style="font-size: 0.875rem;">
                         How was your collaboration on <strong>"{{ transaction.service.title }}"</strong>?
                     </p>
                 </div>
-                <hr class="my-3">
-                <form method="POST">
+                <hr class="my-4">
+                
+                <form method="POST" id="reviewForm">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 0.875rem;">Star Rating</label>
-                        {{ form.rating }}
-                    </div>
+                    {{ form.rating }}
+                    
                     <div class="mb-4">
-                        <label class="form-label fw-bold" style="font-size: 0.875rem;">Comments</label>
-                        {{ form.comment }}
+                        <label class="form-label d-block text-center fw-bold mb-3" style="font-size: 0.875rem; text-transform: uppercase; color: #64748b;">Tap to Rate</label>
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="star-rating mb-2">
+                                <input type="radio" id="star5" name="star_input" value="5" /><label for="star5" title="5 stars">★</label>
+                                <input type="radio" id="star4" name="star_input" value="4" /><label for="star4" title="4 stars">★</label>
+                                <input type="radio" id="star3" name="star_input" value="3" /><label for="star3" title="3 stars">★</label>
+                                <input type="radio" id="star2" name="star_input" value="2" /><label for="star2" title="2 stars">★</label>
+                                <input type="radio" id="star1" name="star_input" value="1" /><label for="star1" title="1 star">★</label>
+                            </div>
+                            <div id="ratingDescription" class="rating-label-text text-muted">Select a rating</div>
+                        </div>
+                        {% if form.rating.errors %}
+                            <div class="text-danger small mt-1 text-center">{{ form.rating.errors }}</div>
+                        {% endif %}
                     </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-2" style="font-size: 0.875rem;">Your Feedback</label>
+                        <div class="p-1">
+                            {{ form.comment }}
+                        </div>
+                        {% if form.comment.errors %}
+                            <div class="text-danger small mt-2">{{ form.comment.errors }}</div>
+                        {% endif %}
+                    </div>
+
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-dark fw-bold py-2" style="border-radius: 10px;">Submit Review</button>
-                        <a href="{% url 'profile' %}" class="btn btn-light" style="border-radius: 10px;">Cancel</a>
+                        <button type="submit" id="submitBtn" class="btn btn-dark fw-bold py-3" style="border-radius: 12px;" disabled>Submit Review</button>
+                        <a href="{% url 'profile' %}" class="btn btn-link text-muted text-decoration-none" style="border-radius: 10px;">Cancel</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const starInputs = document.querySelectorAll('input[name="star_input"]');
+        const hiddenRatingInput = document.getElementById('id_rating');
+        const ratingDescription = document.getElementById('ratingDescription');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        const descriptions = {
+            '1': 'Poor',
+            '2': 'Fair',
+            '3': 'Good',
+            '4': 'Very Good',
+            '5': 'Excellent'
+        };
+
+        starInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const val = this.value;
+                hiddenRatingInput.value = val;
+                ratingDescription.textContent = descriptions[val];
+                ratingDescription.classList.remove('text-muted');
+                ratingDescription.classList.add('text-dark');
+                submitBtn.disabled = false;
+            });
+        });
+    });
+</script>
 {% endblock %}

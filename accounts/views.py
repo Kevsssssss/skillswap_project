@@ -1,9 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Q
 from marketplace.models import Transaction, Service, KarmaTransaction, Review, Notification
+from django.contrib.auth.models import User
+from .forms import UserUpdateForm, ProfileUpdateForm
 
 def register(request):
     if request.method == 'POST':
@@ -57,6 +59,7 @@ def profile(request):
 
     avg_rating_raw = request.user.reviews_received.aggregate(Avg('rating'))['rating__avg']
     avg_rating = round(avg_rating_raw, 1) if avg_rating_raw is not None else None
+    review_count = request.user.reviews_received.count()
 
     context = {
         'bounties_in_progress': bounties_in_progress,
@@ -64,7 +67,46 @@ def profile(request):
         'tasks_im_doing': tasks_im_doing,
         'completed_tasks': completed_tasks,
         'karma_history': karma_history,
-        'notifications': notifications, # Full history for the tab
+        'notifications': notifications,
         'avg_rating': avg_rating,
+        'review_count': review_count,
     }
     return render(request, 'accounts/profile.html', context)
+
+def public_profile(request, username):
+    user = get_object_or_404(User, username=username)
+    
+    avg_rating_raw = user.reviews_received.aggregate(Avg('rating'))['rating__avg']
+    avg_rating = round(avg_rating_raw, 1) if avg_rating_raw is not None else None
+    review_count = user.reviews_received.count()
+    
+    # Show their active bounties
+    active_bounties = user.posted_bounties.filter(is_active=True).order_by('-created_at')
+
+    context = {
+        'profile_user': user,
+        'avg_rating': avg_rating,
+        'review_count': review_count,
+        'active_bounties': active_bounties,
+    }
+    return render(request, 'accounts/public_profile.html', context)
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        u_form = UserUpdateForm(request.POST, instance=request.user)
+        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+        if u_form.is_valid() and p_form.is_valid():
+            u_form.save()
+            p_form.save()
+            messages.success(request, f'Your account has been updated!')
+            return redirect('profile')
+    else:
+        u_form = UserUpdateForm(instance=request.user)
+        p_form = ProfileUpdateForm(instance=request.user.profile)
+
+    context = {
+        'u_form': u_form,
+        'p_form': p_form
+    }
+    return render(request, 'accounts/edit_profile.html', context)

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+            <div class="card-body p-4 p-md-5">
+                <h4 class="fw-bold mb-4">Edit Profile</h4>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <fieldset class="form-group mb-4">
+                        <legend class="border-bottom mb-3 pb-2" style="font-size: 1.1rem; font-weight: 600;">Account Info</legend>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Username</label>
+                            {{ u_form.username }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Email</label>
+                            {{ u_form.email }}
+                        </div>
+                    </fieldset>
+                    
+                    <fieldset class="form-group mb-4">
+                        <legend class="border-bottom mb-3 pb-2" style="font-size: 1.1rem; font-weight: 600;">Profile Details</legend>
+                        <div class="mb-4 text-center">
+                            <label class="form-label d-block fw-bold small text-muted">Profile Picture</label>
+                            <img src="{{ user.profile.image.url }}" class="rounded-circle border mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                            <div class="mx-auto" style="max-width: 300px;">
+                                {{ p_form.image }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Specialties</label>
+                            {{ p_form.specialties }}
+                            <div class="form-text small">{{ p_form.specialties.help_text }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Bio</label>
+                            {{ p_form.bio }}
+                        </div>
+                    </fieldset>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-dark fw-bold py-2" type="submit" style="border-radius: 10px;">Update Profile</button>
+                        <a href="{% url 'profile' %}" class="btn btn-light" style="border-radius: 10px;">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input, textarea {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        appearance: none;
+        border-radius: 8px;
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+    input:focus, textarea:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+    }
+</style>
+{% endblock %}

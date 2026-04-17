@@ -17,8 +17,15 @@ def landing_page(request):
 
 @login_required
 def service_list(request):
-    services = Service.objects.filter(is_active=True).order_by('-created_at')
-    return render(request, 'marketplace/service_list.html', {'services': services})
+    query = request.GET.get('q')
+    if query:
+        services = Service.objects.filter(
+            Q(title__icontains=query) | Q(description__icontains=query),
+            is_active=True
+        ).order_by('-created_at')
+    else:
+        services = Service.objects.filter(is_active=True).order_by('-created_at')
+    return render(request, 'marketplace/service_list.html', {'services': services, 'query': query})
 
 @login_required
 def service_detail(request, pk):
@@ -70,37 +77,10 @@ def claim_bounty(request, pk):
             user=service.client,
             sender=request.user,
             message=f"@{request.user.username} claimed your bounty: {service.title}",
-            target_url=f"/marketplace/chat/{tx.pk}/"
+            target_url=f"/marketplace/transaction/{tx.pk}/chat/"
         )
     messages.success(request, "Bounty claimed!")
     return redirect('chat_room', pk=tx.pk)
-
-@login_required
-def profile(request):
-    unclaimed_listings = Service.objects.filter(client=request.user, is_active=True)
-    bounties_in_progress = Transaction.objects.filter(service__client=request.user).exclude(status='COMPLETED')
-    tasks_im_doing = Transaction.objects.filter(fulfiller=request.user).exclude(status='COMPLETED')
-    completed_tasks = Transaction.objects.filter(Q(service__client=request.user) | Q(fulfiller=request.user), status='COMPLETED')
-    
-    for tx in completed_tasks:
-        tx.user_has_reviewed = Review.objects.filter(transaction=tx, reviewer=request.user).exists()
-        
-    karma_history = KarmaTransaction.objects.filter(user=request.user).order_by('-created_at')
-    
-    # THE STABLE ROLLBACK: Just fetch raw unread notifications
-    notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')
-    avg_rating_raw = Review.objects.filter(reviewee=request.user).aggregate(Avg('rating'))['rating__avg']
-    avg_rating = round(avg_rating_raw, 1) if avg_rating_raw is not None else None
-
-    return render(request, 'accounts/profile.html', {
-        'unclaimed_listings': unclaimed_listings,
-        'bounties_in_progress': bounties_in_progress,
-        'tasks_im_doing': tasks_im_doing,
-        'completed_tasks': completed_tasks,
-        'karma_history': karma_history,
-        'notifications': notifications, # Restored raw variable
-        'avg_rating': avg_rating,
-    })
 
 @login_required
 def chat_room(request, pk):
@@ -110,7 +90,7 @@ def chat_room(request, pk):
 
     Notification.objects.filter(
         user=request.user,
-        target_url__icontains=f'/marketplace/chat/{pk}/',
+        target_url__icontains=f'/marketplace/transaction/{pk}/chat/',
         is_read=False
     ).update(is_read=True)
 
@@ -146,7 +126,7 @@ def upload_file(request, pk):
 def inbox(request):
     my_chats = Transaction.objects.filter(Q(service__client=request.user) | Q(fulfiller=request.user)).order_by('-updated_at')
     for tx in my_chats:
-        tx.unread_count = Notification.objects.filter(user=request.user, target_url__icontains=f'/marketplace/chat/{tx.pk}/', is_read=False).count()
+        tx.unread_count = Notification.objects.filter(user=request.user, target_url__icontains=f'/marketplace/transaction/{tx.pk}/chat/', is_read=False).count()
     return render(request, 'marketplace/inbox.html', {'my_chats': my_chats})
 
 @login_required
@@ -165,14 +145,14 @@ def mark_transaction_complete(request, pk):
         Notification.objects.create(
             user=tx.fulfiller, sender=request.user,
             message=f"Client approved work for: {tx.service.title}",
-            target_url=f"/marketplace/chat/{tx.pk}/"
+            target_url=f"/marketplace/transaction/{tx.pk}/chat/"
         )
     else:
         tx.fulfiller_approved = True
         Notification.objects.create(
             user=tx.service.client, sender=request.user,
             message=f"Worker marked as done: {tx.service.title}",
-            target_url=f"/marketplace/chat/{tx.pk}/"
+            target_url=f"/marketplace/transaction/{tx.pk}/chat/"
         )
     tx.save()
 

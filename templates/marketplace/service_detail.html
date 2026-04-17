@@ -8,7 +8,16 @@
 
                 <div class="mb-4">
                     <h2 class="fw-bold mb-1" style="letter-spacing: -0.5px;">{{ service.title }}</h2>
-                    <small class="text-muted">Posted by <strong>@{{ service.client.username }}</strong></small>
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="{{ service.client.profile.image.url }}" class="rounded-circle border" 
+                             style="width: 32px; height: 32px; object-fit: cover;">
+                        <small class="text-muted">Posted by 
+                            <a href="{% url 'public_profile' service.client.username %}" class="fw-bold text-dark text-decoration-none">@{{ service.client.username }}</a>
+                        </small>
+                        {% if service.client.profile.specialties %}
+                            <span class="badge bg-light text-dark border" style="font-size: 0.7rem;">{{ service.client.profile.specialties }}</span>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <div class="rounded p-4 mb-4" style="background: #f5f4f0; border-left: 4px solid #e2e0db;">

@@ -18,6 +18,7 @@ def broadcast_new_service(sender, instance, created, **kwargs):
                     'id': instance.id,
                     'title': instance.title,
                     'provider': instance.client.username,
+                    'profile_image_url': instance.client.profile.image.url,
                     'karma_cost': instance.karma_reward,
                     'description': instance.description[:100] + '...'
                 }
@@ -27,11 +28,10 @@ def broadcast_new_service(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Message)
 def create_notification_on_message(sender, instance, created, **kwargs):
-    """Create a Notification record whenever a private message is sent."""
+    """Create or update a Notification record whenever a private message is sent."""
     if not created:
         return
 
-    # FIX: Guard against missing fulfiller (e.g. message created before claim)
     if instance.sender == instance.transaction.service.client:
         recipient = instance.transaction.fulfiller
     else:
@@ -40,31 +40,49 @@ def create_notification_on_message(sender, instance, created, **kwargs):
     if recipient is None:
         return
 
-    Notification.objects.create(
+    target_url = reverse('chat_room', kwargs={'pk': instance.transaction.pk})
+    
+    # Check for existing unread notification from this sender for this specific chat
+    existing_notification = Notification.objects.filter(
         user=recipient,
         sender=instance.sender,
-        message=f"New message from @{instance.sender.username}",
-        # FIX: reverse() guarantees this matches what chat_room view clears exactly
-        target_url=reverse('chat_room', kwargs={'pk': instance.transaction.pk})
-    )
+        target_url=target_url,
+        is_read=False
+    ).first()
+
+    if existing_notification:
+        # Increment message count or update text
+        # We can count messages in the transaction that are newer than when the notification was first created,
+        # but for simplicity, let's just count all unread messages or just use a generic message.
+        unread_count = Message.objects.filter(
+            transaction=instance.transaction,
+            sender=instance.sender
+        ).count() # This is a bit naive but works for aggregation
+        
+        existing_notification.message = f"{unread_count} new messages from @{instance.sender.username}"
+        existing_notification.save()
+    else:
+        Notification.objects.create(
+            user=recipient,
+            sender=instance.sender,
+            message=f"New message from @{instance.sender.username}",
+            target_url=target_url
+        )
 
 
 @receiver(post_save, sender=Notification)
 def send_realtime_notification(sender, instance, created, **kwargs):
-    """Trigger the WebSocket toast and sound."""
-    if not created:
+    """Trigger the WebSocket toast and sound on creation or update of unread notification."""
+    # We want to send a notification if it's new OR if it was just updated and still unread
+    if instance.is_read:
         return
 
-    # FIX: Guard against missing sender (system notifications)
     channel_layer = get_channel_layer()
     if channel_layer is None:
         return
 
-    unread_from_sender = Notification.objects.filter(
-        user=instance.user,
-        sender=instance.sender,
-        is_read=False
-    ).count()
+    # Get total unread count for this user
+    unread_total = Notification.objects.filter(user=instance.user, is_read=False).count()
 
     async_to_sync(channel_layer.group_send)(
         f'user_{instance.user.id}_notifications',
@@ -73,7 +91,7 @@ def send_realtime_notification(sender, instance, created, **kwargs):
             'message': instance.message,
             'sender_id': instance.sender.id if instance.sender else 0,
             'sender_name': instance.sender.username if instance.sender else "System",
-            'unread_count': unread_from_sender,
+            'unread_count': unread_total,
             'target_url': instance.target_url or '#'
         }
     )

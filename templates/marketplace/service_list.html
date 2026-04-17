@@ -1,12 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+<div class="d-flex justify-content-between align-items-center mt-4 mb-4 flex-wrap gap-3">
     <div>
         <h1 class="fw-bold mb-0" style="letter-spacing: -0.5px;">Trading Floor</h1>
         <p class="text-muted mb-0" style="font-size: 0.875rem;">Live bounties open for claiming</p>
     </div>
-    <a href="{% url 'service_create' %}" class="btn btn-dark fw-bold px-4" style="border-radius: 10px;">+ Post a Bounty</a>
+    
+    <div class="d-flex gap-2 flex-grow-1 justify-content-md-end">
+        <form action="{% url 'service_list' %}" method="GET" class="d-flex gap-1">
+            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control" placeholder="Search tasks..." style="border-radius: 10px; min-width: 200px;">
+            <button type="submit" class="btn btn-outline-dark" style="border-radius: 10px;">Search</button>
+            {% if query %}
+                <a href="{% url 'service_list' %}" class="btn btn-light" style="border-radius: 10px;">Clear</a>
+            {% endif %}
+        </form>
+        <a href="{% url 'service_create' %}" class="btn btn-dark fw-bold px-4" style="border-radius: 10px;">+ Post a Bounty</a>
+    </div>
 </div>
 
 <div id="bounty-list" class="row">
@@ -25,7 +35,11 @@
                         {{ service.description|truncatewords:20 }}
                     </p>
                     <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid #f0ede8;">
-                        <small class="text-secondary" style="font-size: 0.78rem;">@{{ service.client.username }}</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="{{ service.client.profile.image.url }}" class="rounded-circle border" 
+                                 style="width: 24px; height: 24px; object-fit: cover;">
+                            <a href="{% url 'public_profile' service.client.username %}" class="text-secondary text-decoration-none small fw-bold">@{{ service.client.username }}</a>
+                        </div>
                         <a href="{% url 'service_detail' service.pk %}" class="btn btn-sm fw-bold px-3"
                         style="border-radius: 8px; font-size: 0.8rem; border: 1.5px solid #6366f1; color: #6366f1; background: transparent;">
                             View Details
@@ -37,8 +51,13 @@
     {% empty %}
         <div id="no-bounties-msg" class="col-12 text-center py-5">
             <div style="font-size: 2.5rem; opacity: 0.3; margin-bottom: 1rem;">&#9650;</div>
-            <h4 class="text-muted fw-bold mb-1">The floor is quiet...</h4>
-            <p class="text-secondary" style="font-size: 0.875rem;">Be the first to post a bounty!</p>
+            {% if query %}
+                <h4 class="text-muted fw-bold mb-1">No results for "{{ query }}"</h4>
+                <p class="text-secondary" style="font-size: 0.875rem;">Try a different search term or clear the filter.</p>
+            {% else %}
+                <h4 class="text-muted fw-bold mb-1">The floor is quiet...</h4>
+                <p class="text-secondary" style="font-size: 0.875rem;">Be the first to post a bounty!</p>
+            {% endif %}
         </div>
     {% endfor %}
 </div>
@@ -70,7 +89,11 @@
                         </div>
                         <p class="card-text text-muted mb-3" style="font-size: 0.85rem; line-height: 1.6;">${bounty.description}</p>
                         <div class="d-flex justify-content-between align-items-center pt-2" style="border-top:1px solid #f0ede8;">
-                            <small class="text-secondary" style="font-size:0.78rem;">@${bounty.provider}</small>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="${bounty.profile_image_url}" class="rounded-circle border" 
+                                     style="width: 24px; height: 24px; object-fit: cover;">
+                                <a href="/accounts/user/${bounty.provider}/" class="text-secondary text-decoration-none small fw-bold">@${bounty.provider}</a>
+                            </div>
                             <a href="/marketplace/${bounty.id}/" class="btn btn-sm fw-bold px-3"
                                 style="border-radius:8px; font-size:0.8rem; border:1.5px solid #6366f1; color:#6366f1; background:transparent;">
                                 View Details
